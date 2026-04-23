@@ -2,19 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CombatArena } from "./CombatArena";
+import { HudSidebar } from "./HudSidebar";
 import { HyperPotCounter } from "./HyperPotCounter";
 import { LiveBlitzFeed } from "./LiveBlitzFeed";
 import { SabotageDeck } from "./SabotageDeck";
+import { StickmanSpectacle } from "./StickmanSpectacle";
 import { VictoryOverlay } from "./VictoryOverlay";
-import { mockFeed, mockPot, mockQuestions } from "./mockData";
-import type { SabotageType } from "./types";
+import { initialContestants, mockEntryFee, mockPlayers, mockPot, mockQuestions, mockWalletBalance } from "./mockData";
+import type { ChainBlockItem, EliminationItem, SabotageType } from "./types";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
-import { formatEther } from "viem";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 const burstConfetti = () => {
-  void confetti({ particleCount: 120, spread: 72, origin: { y: 0.65 } });
+  void confetti({ particleCount: 150, spread: 86, origin: { y: 0.62 } });
 };
 
 const victoryConfetti = () => {
@@ -32,43 +32,61 @@ export const WarOfWitsScene = () => {
   const [edgeGlowTick, setEdgeGlowTick] = useState(0);
   const [sabotageEffect, setSabotageEffect] = useState<SabotageType | null>(null);
   const [victoryVisible, setVictoryVisible] = useState(false);
-
-  // 💰 Pot'u kontrat'tan oku
-  const { data: contractPot } = useScaffoldReadContract({
-    contractName: "YourContract",
-    functionName: "totalPot", // ⚠️ ABI'deki gerçek fonksiyon adıyla değiştir
-  });
-
-  // Kontrat verisi gelince pot'u güncelle, yoksa mock kullan
-  useEffect(() => {
-    if (contractPot) {
-      setPot(Number(formatEther(contractPot as bigint)));
-    }
-  }, [contractPot]);
+  const [playersRemaining, setPlayersRemaining] = useState(initialContestants);
+  const [walletBalance] = useState(mockWalletBalance);
+  const [sabotageSpent, setSabotageSpent] = useState(0);
+  const [eliminationBurstKey, setEliminationBurstKey] = useState(0);
+  const [chainBlocks, setChainBlocks] = useState<ChainBlockItem[]>([]);
+  const [eliminations, setEliminations] = useState<EliminationItem[]>([]);
 
   const currentQuestion = useMemo(() => mockQuestions[questionIndex % mockQuestions.length], [questionIndex]);
+  const totalSpent = mockEntryFee + sabotageSpent;
+  const potentialEarnings = playersRemaining > 0 ? pot / playersRemaining : pot;
 
   const triggerEdgeGlow = () => setEdgeGlowTick(previous => previous + 1);
 
-  const handleCorrect = () => {
-    burstConfetti();
-    setPot(previous => previous + 7 + Math.random() * 10);
-    setPotPulseKey(previous => previous + 1);
-    triggerEdgeGlow();
-    setTimeout(() => {
-      setQuestionIndex(previous => previous + 1);
-    }, 850);
-  };
+  const randomHash = () => Math.random().toString(16).slice(2, 7).toUpperCase();
 
-  const handleWrong = () => {
-    setGlitchTick(previous => previous + 1);
+  const handleAnswer = (isCorrect: boolean, optionLabel: string) => {
+    const player = mockPlayers[Math.floor(Math.random() * mockPlayers.length)];
+    if (isCorrect) {
+      burstConfetti();
+      setPot(previous => previous + 3.2 + Math.random() * 5.8);
+      setPotPulseKey(previous => previous + 1);
+      setChainBlocks(previous => {
+        const prevHash = previous[0]?.hash ?? "GEN00";
+        const next: ChainBlockItem = {
+          id: `blk-${Date.now()}`,
+          playerName: player,
+          answerLabel: optionLabel,
+          hash: randomHash(),
+          prevHash,
+        };
+        return [next, ...previous].slice(0, 12);
+      });
+    } else {
+      setGlitchTick(previous => previous + 1);
+      setPlayersRemaining(previous => Math.max(1, previous - (1 + Math.floor(Math.random() * 4))));
+      setEliminationBurstKey(previous => previous + 1);
+      setEliminations(previous => {
+        const next: EliminationItem = {
+          id: `el-${Date.now()}`,
+          playerName: player,
+          wrongAnswer: optionLabel,
+        };
+        return [next, ...previous].slice(0, 14);
+      });
+    }
     triggerEdgeGlow();
+    setTimeout(() => setQuestionIndex(previous => previous + 1), 900);
   };
 
   const handleSabotage = (type: SabotageType) => {
     setSabotageEffect(type);
+    const multiplier = type === "ice" ? 5 : 3;
+    setSabotageSpent(previous => previous + mockEntryFee * multiplier);
     triggerEdgeGlow();
-    setTimeout(() => setSabotageEffect(null), 1300);
+    setTimeout(() => setSabotageEffect(null), 1500);
   };
 
   const handleSimulateWin = () => {
@@ -78,14 +96,30 @@ export const WarOfWitsScene = () => {
     setTimeout(() => setVictoryVisible(false), 2600);
   };
 
-  // Pot animasyonu (mock veya kontrat yokken çalışır)
   useEffect(() => {
-    if (contractPot) return; // kontrat bağlıysa mock artışı durdur
     const interval = setInterval(() => {
-      setPot(previous => previous + Math.random() * 1.9);
+      setPot(previous => previous + Math.random() * 0.5);
     }, 2400);
     return () => clearInterval(interval);
-  }, [contractPot]);
+  }, []);
+
+  useEffect(() => {
+    if (chainBlocks.length > 0) return;
+    setChainBlocks(
+      Array.from({ length: 6 }, (_, index) => ({
+        id: `seed-${index}`,
+        playerName: mockPlayers[index % mockPlayers.length],
+        answerLabel: "Parallel execution with low latency finality",
+        hash: randomHash(),
+        prevHash: index === 0 ? "GEN00" : randomHash(),
+      })),
+    );
+    setEliminations([
+      { id: "seed-el-1", playerName: "Bob", wrongAnswer: "Option C" },
+      { id: "seed-el-2", playerName: "Nisa", wrongAnswer: "Option D" },
+      { id: "seed-el-3", playerName: "Mert", wrongAnswer: "Option B" },
+    ]);
+  }, [chainBlocks.length]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#000000] px-3 py-5 text-white sm:px-6 sm:py-8">
@@ -110,7 +144,6 @@ export const WarOfWitsScene = () => {
         />
       ) : null}
 
-      {/* 🏆 wonAmount ile gerçek kazanılan MON gösterimi */}
       <VictoryOverlay visible={victoryVisible} wonAmount={pot} />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6">
@@ -126,24 +159,42 @@ export const WarOfWitsScene = () => {
           </button>
         </div>
 
-        <HyperPotCounter basePot={pot} pulseKey={potPulseKey} />
+        <HyperPotCounter
+          basePot={pot}
+          pulseKey={potPulseKey}
+          playersRemaining={playersRemaining}
+          potentialEarnings={potentialEarnings}
+        />
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="lg:col-span-8">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+          <div className="xl:col-span-3">
+            <LiveBlitzFeed blocks={chainBlocks} eliminations={eliminations} />
+          </div>
+
+          <div className="xl:col-span-6 space-y-4">
+            <StickmanSpectacle
+              totalPlayers={initialContestants}
+              playersRemaining={playersRemaining}
+              eliminationBurstKey={eliminationBurstKey}
+            />
             <CombatArena
               question={currentQuestion}
-              onCorrect={handleCorrect}
-              onWrong={handleWrong}
+              onAnswer={handleAnswer}
               onEdgeGlow={triggerEdgeGlow}
               glitchTick={glitchTick}
             />
           </div>
-          <div className="lg:col-span-4">
-            <SabotageDeck onTrigger={handleSabotage} />
+
+          <div className="xl:col-span-3 space-y-4">
+            <HudSidebar
+              walletBalance={walletBalance}
+              totalSpent={totalSpent}
+              entryFee={mockEntryFee}
+              sabotageSpent={sabotageSpent}
+            />
+            <SabotageDeck onTrigger={handleSabotage} entryFee={mockEntryFee} />
           </div>
         </div>
-
-        <LiveBlitzFeed seedItems={mockFeed} />
       </div>
     </main>
   );

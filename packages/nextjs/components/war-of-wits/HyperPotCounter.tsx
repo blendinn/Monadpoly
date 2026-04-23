@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 type HyperPotCounterProps = {
   basePot: number;
   pulseKey: number;
+  playersRemaining: number;
+  potentialEarnings: number;
 };
 
 const formatPot = (value: number) =>
@@ -14,7 +16,7 @@ const formatPot = (value: number) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-export const HyperPotCounter = ({ basePot, pulseKey }: HyperPotCounterProps) => {
+export const HyperPotCounter = ({ basePot, pulseKey, playersRemaining, potentialEarnings }: HyperPotCounterProps) => {
   const [displayPot, setDisplayPot] = useState(basePot);
 
   useEffect(() => {
@@ -50,6 +52,9 @@ export const HyperPotCounter = ({ basePot, pulseKey }: HyperPotCounterProps) => 
         <span className="text-4xl sm:text-6xl lg:text-7xl">{slotDigits}</span>
         <span className="ml-3 text-xl align-middle text-[#3FD4FF] sm:text-3xl">MON</span>
       </div>
+      <p className="relative mt-4 text-center text-xs font-semibold tracking-[0.1em] text-[#9ce4ff] sm:text-sm">
+        Players Remaining: {playersRemaining} | Your Potential Earnings: {potentialEarnings.toFixed(2)} MON
+      </p>
     </motion.section>
   );
 };

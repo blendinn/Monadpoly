@@ -1,7 +1,6 @@
 export type QuizOption = {
   id: string;
   label: string;
-  isCorrect: boolean;
 };
 
 export type QuizQuestion = {
@@ -12,7 +11,16 @@ export type QuizQuestion = {
 
 export type SabotageType = "ice" | "smoke" | "time";
 
-export type BlitzFeedItem = {
+export type ChainBlockItem = {
   id: string;
-  message: string;
+  playerName: string;
+  answerLabel: string;
+  hash: string;
+  prevHash: string;
+};
+
+export type EliminationItem = {
+  id: string;
+  playerName: string;
+  wrongAnswer: string;
 };

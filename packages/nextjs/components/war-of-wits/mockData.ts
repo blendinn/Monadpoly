@@ -1,45 +1,56 @@
-import type { BlitzFeedItem, QuizQuestion } from "./types";
+import type { QuizQuestion } from "./types";
 
-export const mockPot = 2540.5; // BU ALAN BACKEND TARAFINDAN BAGLANACAK
+export const mockPot = 250;
+export const mockWalletBalance = 250;
+export const mockEntryFee = 0.25;
+export const initialContestants = 100;
 
 export const mockQuestions: QuizQuestion[] = [
   {
     id: "q1",
-    prompt: "Monad neden ultra dusuk latency ile dikkat cekiyor?",
+    prompt: "Why does Monad stand out for realtime Game-Fi quiz loops?",
     options: [
-      { id: "a", label: "Parallel EVM execution", isCorrect: true },
-      { id: "b", label: "Yavas finality", isCorrect: false },
-      { id: "c", label: "Sadece L1 bridge hizi", isCorrect: false },
-      { id: "d", label: "Gas costlarini kaldirmasi", isCorrect: false },
+      { id: "a", label: "Parallel execution with low latency finality" },
+      { id: "b", label: "Slow UX but lower cost only" },
+      { id: "c", label: "Only bridge speed improvements" },
+      { id: "d", label: "No mempool and no signatures needed" },
     ],
   },
   {
     id: "q2",
-    prompt: "Web3 quiz oyunlarinda en kritik UX hedefi nedir?",
+    prompt: "What creates instant dopamine in a web3 elimination arena?",
     options: [
-      { id: "a", label: "Onay bekletmek", isCorrect: false },
-      { id: "b", label: "Anlik geri bildirim", isCorrect: true },
-      { id: "c", label: "Sabit ekranlar", isCorrect: false },
-      { id: "d", label: "Dusuk kontrast", isCorrect: false },
+      { id: "a", label: "Fast feedback with visible chain progression" },
+      { id: "b", label: "Long and static loading moments" },
+      { id: "c", label: "No stakes and hidden outcomes" },
+      { id: "d", label: "Monochrome and low contrast cards" },
     ],
   },
   {
     id: "q3",
-    prompt: "High-stakes hissetmek icin hangi unsur en etkili?",
+    prompt: "Which feature best amplifies high-stakes competition?",
     options: [
-      { id: "a", label: "Statik metinler", isCorrect: false },
-      { id: "b", label: "Yavas gecisler", isCorrect: false },
-      { id: "c", label: "Canli pot + zaman baskisi", isCorrect: true },
-      { id: "d", label: "Efektsiz butonlar", isCorrect: false },
+      { id: "a", label: "Live pot growth plus countdown pressure" },
+      { id: "b", label: "Minimal animation and no timer" },
+      { id: "c", label: "No elimination effects" },
+      { id: "d", label: "Muted interactions and low saturation" },
     ],
   },
 ];
 
-export const mockFeed: BlitzFeedItem[] = [
-  { id: "f1", message: "Alice just sabotaged Bob!" },
-  { id: "f2", message: "The Pot reached 5000 MON!" },
-  { id: "f3", message: "Cem landed a perfect streak x4." },
-  { id: "f4", message: "Time Thief activated against Team Neon." },
-  { id: "f5", message: "Derya secured a 220 MON speed bonus." },
-  { id: "f6", message: "Ice Strike froze the arena for 1.5s." },
+export const mockPlayers = [
+  "Aylin",
+  "Bora",
+  "Cem",
+  "Dora",
+  "Efe",
+  "Lara",
+  "Mert",
+  "Nisa",
+  "Ozan",
+  "Pelin",
+  "Rana",
+  "Sarp",
+  "Tuna",
+  "Yaren",
 ];

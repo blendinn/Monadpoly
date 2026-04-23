@@ -5,21 +5,19 @@ import { motion } from "framer-motion";
 
 type SabotageDeckProps = {
   onTrigger: (type: SabotageType) => void;
+  entryFee: number;
 };
 
-const cards: { type: SabotageType; title: string; description: string }[] = [
-  { type: "ice", title: "Ice Strike", description: "Ekrani dondurur" },
-  { type: "smoke", title: "Smoke Grenade", description: "Soruyu bulaniklastirir" },
-  { type: "time", title: "Time Thief", description: "Rakibin suresini calar" },
+const cards: { type: SabotageType; title: string; description: string; feeMultiplier: number }[] = [
+  { type: "time", title: "Sureyi Kisalt", description: "-3s All Rivals", feeMultiplier: 3 },
+  { type: "smoke", title: "Goruntu Blurla", description: "Rivals for 3s", feeMultiplier: 3 },
+  { type: "ice", title: "Sure Tablosunu Gizle", description: "Rivals end-of-round", feeMultiplier: 5 },
 ];
 
-export const SabotageDeck = ({ onTrigger }: SabotageDeckProps) => {
+export const SabotageDeck = ({ onTrigger, entryFee }: SabotageDeckProps) => {
   return (
     <aside className="rounded-3xl border border-white/15 bg-white/8 p-5 backdrop-blur-xl">
       <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-[#3FD4FF]">Sabotage Your Rivals</h3>
-      <p className="mt-2 text-xs text-white/60">
-        BU ALAN BACKEND TARAFINDAN BAGLANACAK: Sabotaj haklari cuzdana gore hesaplanabilir.
-      </p>
 
       <div className="mt-4 space-y-3">
         {cards.map(card => (
@@ -32,6 +30,12 @@ export const SabotageDeck = ({ onTrigger }: SabotageDeckProps) => {
           >
             <p className="text-sm font-semibold text-[#ff6f8f]">{card.title}</p>
             <p className="mt-1 text-xs text-white/70">{card.description}</p>
+            <p className="mt-1 text-xs font-semibold text-[#ffd57f]">
+              Ucret: {(entryFee * card.feeMultiplier).toFixed(2)} MON
+            </p>
+            <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-cyan-300/80">
+              Backend&apos;e istek atilacak
+            </p>
           </motion.button>
         ))}
       </div>
