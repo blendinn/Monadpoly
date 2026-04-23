@@ -4,6 +4,9 @@ type ContestState = {
   started: boolean;
   startedAt: number | null;
   readyParticipants: string[];
+  hostAddress: string | null;
+  minParticipants: number;
+  targetParticipants: number;
 };
 
 type ParticipantStore = {
@@ -19,7 +22,14 @@ declare global {
 
 const getContestState = (): ContestState => {
   if (!global.__contestStateStore) {
-    global.__contestStateStore = { started: false, startedAt: null, readyParticipants: [] };
+    global.__contestStateStore = {
+      started: false,
+      startedAt: null,
+      readyParticipants: [],
+      hostAddress: null,
+      minParticipants: 2,
+      targetParticipants: 2,
+    };
   }
   return global.__contestStateStore;
 };
@@ -38,6 +48,10 @@ export async function POST(request: Request) {
     startedAt?: number | null;
     readyAddress?: string;
     isReady?: boolean;
+    hostAddress?: string;
+    minParticipants?: number;
+    targetParticipants?: number;
+    startRequest?: boolean;
   };
   const store = getContestState();
 
@@ -54,23 +68,38 @@ export async function POST(request: Request) {
     }
   }
 
+  if (body.hostAddress) {
+    store.hostAddress = body.hostAddress.toLowerCase().trim();
+  }
+  if (typeof body.minParticipants === "number") {
+    store.minParticipants = Math.max(2, Math.floor(body.minParticipants));
+  }
+  if (typeof body.targetParticipants === "number") {
+    store.targetParticipants = Math.max(store.minParticipants, Math.floor(body.targetParticipants));
+  }
+
   if (typeof body.started === "boolean") {
     store.started = body.started;
     if (!body.started) {
       store.readyParticipants = [];
       store.startedAt = null;
+      store.hostAddress = null;
+      store.minParticipants = 2;
+      store.targetParticipants = 2;
     }
   }
   if (typeof body.startedAt === "number" || body.startedAt === null) {
     store.startedAt = body.startedAt;
   }
 
-  const allReady =
-    participants.length > 0 && participants.every(item => store.readyParticipants.includes(item)) && !store.started;
-
-  if (allReady) {
-    store.started = true;
-    store.startedAt = Date.now();
+  if (body.startRequest) {
+    const allReady = participants.length > 0 && participants.every(item => store.readyParticipants.includes(item));
+    const enoughParticipants =
+      participants.length >= store.minParticipants && participants.length >= store.targetParticipants;
+    if (allReady && enoughParticipants) {
+      store.started = true;
+      store.startedAt = Date.now();
+    }
   }
 
   return NextResponse.json(store);

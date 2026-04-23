@@ -8,6 +8,9 @@ type ContestStateStore = {
   started: boolean;
   startedAt: number | null;
   readyParticipants: string[];
+  hostAddress: string | null;
+  minParticipants: number;
+  targetParticipants: number;
 };
 
 declare global {

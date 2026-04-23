@@ -31,7 +31,7 @@ export const CombatArena = ({
     setOptimisticSuccess(null);
   }, [question.id]);
 
-  const progress = useMemo(() => (Math.max(0, timeLeft) / 15) * 100, [timeLeft]);
+  const progress = useMemo(() => (Math.max(0, timeLeft) / 10) * 100, [timeLeft]);
 
   const handleOptionClick = (optionId: string, optionLabel: string) => {
     if (!isInteractive || selectedOptionId) return;
@@ -61,7 +61,7 @@ export const CombatArena = ({
           transition={{ type: "spring", stiffness: 140, damping: 30 }}
         />
         <p className="pointer-events-none absolute inset-0 grid place-items-center text-[11px] font-bold uppercase tracking-[0.2em] text-white">
-          15 sec
+          10 sec
         </p>
       </div>
 
