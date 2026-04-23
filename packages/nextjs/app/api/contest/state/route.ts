@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   const participants = getParticipants();
   const readyAddress = body.readyAddress?.toLowerCase().trim();
 
-  if (readyAddress && typeof body.isReady === "boolean" && participants.includes(readyAddress)) {
+  if (readyAddress && typeof body.isReady === "boolean") {
     if (body.isReady) {
       if (!store.readyParticipants.includes(readyAddress)) {
         store.readyParticipants.push(readyAddress);
@@ -71,6 +71,11 @@ export async function POST(request: Request) {
       store.readyParticipants = store.readyParticipants.filter(item => item !== readyAddress);
     }
   }
+
+  // Keep ready list normalized and unique even when requests arrive close together.
+  store.readyParticipants = [
+    ...new Set(store.readyParticipants.map(item => item.toLowerCase().trim()).filter(Boolean)),
+  ];
 
   if (body.hostAddress) {
     store.hostAddress = body.hostAddress.toLowerCase().trim();

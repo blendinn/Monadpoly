@@ -7,7 +7,10 @@ import { mockQuestions } from "./mockData";
 import type { EliminationItem, WinnerItem } from "./types";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
+import { parseEther } from "viem";
 import { useAccount } from "wagmi";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { getParsedError, notification } from "~~/utils/scaffold-eth";
 
 type GamePhase = "LOBBY" | "PLAYING" | "ELIMINATED" | "FINISHED";
 type ContestSyncState = {
@@ -138,13 +141,32 @@ export const WarOfWitsScene = () => {
   const [lastProcessedSabotageId, setLastProcessedSabotageId] = useState(0);
   const [nowMs, setNowMs] = useState(Date.now());
   const [lastSabotageQuestionIndex, setLastSabotageQuestionIndex] = useState(-1);
+  const [isTogglingReady, setIsTogglingReady] = useState(false);
+  const [optimisticReady, setOptimisticReady] = useState<boolean | null>(null);
+  const [stablePlayerCount, setStablePlayerCount] = useState(0);
+  const [readyVisualState, setReadyVisualState] = useState<"idle" | "pending" | "joined">("idle");
+
+  const { data: onchainPotPulse } = useScaffoldReadContract({
+    contractName: "YourContract",
+    functionName: "totalPot",
+    watch: true,
+  });
+  const {
+    writeContractAsync: writeReadyTx,
+    isPending: isReadyPending,
+    isMining: isReadyMining,
+  } = useScaffoldWriteContract({
+    contractName: "YourContract",
+  });
 
   const currentQuestion = useMemo(
     () => mockQuestions[Math.min(store.currentQuestionIndex, mockQuestions.length - 1)],
     [store.currentQuestionIndex],
   );
 
-  const isReady = playerAddress ? readyParticipants.includes(playerAddress) : false;
+  const serverReady = playerAddress ? readyParticipants.includes(playerAddress) : false;
+  const isReady = optimisticReady ?? serverReady;
+  const isReadyBusy = isTogglingReady || isReadyPending || isReadyMining;
   const isFrozen = nowMs < freezeUntil;
   const isTimerHidden = nowMs < hideTimerUntil;
   const sabotageOnCooldown = store.phase === "PLAYING" && lastSabotageQuestionIndex === store.currentQuestionIndex;
@@ -164,7 +186,7 @@ export const WarOfWitsScene = () => {
 
   const syncReadyState = async () => {
     const response = await fetch("/api/contest/state", { cache: "no-store" });
-    if (!response.ok) return;
+    if (!response.ok) return null;
     const data = (await response.json()) as Partial<ContestSyncState>;
     const nextReady = Array.isArray(data.readyParticipants) ? data.readyParticipants : [];
     const normalized: ContestSyncState = {
@@ -176,6 +198,11 @@ export const WarOfWitsScene = () => {
     };
     setContestSync(normalized);
     setReadyParticipants(nextReady);
+    if (playerAddress) {
+      setOptimisticReady(nextReady.includes(playerAddress));
+    } else {
+      setOptimisticReady(null);
+    }
     if (
       normalized.started &&
       store.phase === "LOBBY" &&
@@ -186,6 +213,7 @@ export const WarOfWitsScene = () => {
       dispatch({ type: "START_PLAYING", timer: QUESTION_SECONDS });
       setStatusMessage("Match started. Good luck.");
     }
+    return normalized;
   };
 
   const syncSabotageEvents = async () => {
@@ -249,13 +277,51 @@ export const WarOfWitsScene = () => {
   };
 
   const toggleReady = async () => {
-    if (!playerAddress || !store.hasJoined || store.phase !== "LOBBY") return;
-    await fetch("/api/contest/state", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ readyAddress: playerAddress, isReady: !isReady }),
-    });
-    await syncReadyState();
+    if (!playerAddress || !store.hasJoined || store.phase !== "LOBBY" || isReadyBusy) return;
+    const nextReady = !isReady;
+    setIsTogglingReady(true);
+    setOptimisticReady(nextReady);
+    try {
+      setReadyVisualState("pending");
+      await writeReadyTx({
+        functionName: "addToPot",
+        value: parseEther("0"),
+      });
+      const response = await fetch("/api/contest/state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ readyAddress: playerAddress, isReady: nextReady }),
+      });
+      if (!response.ok) {
+        setOptimisticReady(serverReady);
+        setReadyVisualState(serverReady ? "joined" : "idle");
+        setStatusMessage("Ready update failed. Please try again.");
+        notification.error("Ready update failed. Please try again.");
+        return;
+      }
+      await syncReadyState();
+      setReadyVisualState(nextReady ? "joined" : "idle");
+      setStatusMessage(nextReady ? "Ready confirmed. Waiting for others..." : "You are unready.");
+      notification.success(nextReady ? "Ready confirmed." : "Set to unready.");
+    } catch (error) {
+      const parsedError = getParsedError(error).toLowerCase();
+      const isUserRejected = parsedError.includes("user rejected") || parsedError.includes("rejected");
+      const isInsufficientBalance = parsedError.includes("insufficient");
+      setOptimisticReady(serverReady);
+      setReadyVisualState(serverReady ? "joined" : "idle");
+      if (isUserRejected) {
+        setStatusMessage("Transaction rejected from wallet.");
+        notification.error("Transaction rejected from wallet.");
+      } else if (isInsufficientBalance) {
+        setStatusMessage("Insufficient balance for transaction.");
+        notification.error("Insufficient balance for transaction.");
+      } else {
+        setStatusMessage("Ready transaction failed.");
+        notification.error(getParsedError(error));
+      }
+    } finally {
+      setIsTogglingReady(false);
+    }
   };
 
   const eliminateCurrentPlayer = async (reason: string) => {
@@ -321,6 +387,25 @@ export const WarOfWitsScene = () => {
     }
     dispatch({ type: "CLAIMED" });
   };
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setStablePlayerCount(participants.length);
+    }, 180);
+    return () => clearTimeout(timeout);
+  }, [participants.length, onchainPotPulse]);
+
+  useEffect(() => {
+    if (!store.hasJoined) {
+      setReadyVisualState("idle");
+      return;
+    }
+    if (isReadyBusy) {
+      setReadyVisualState("pending");
+      return;
+    }
+    setReadyVisualState(isReady ? "joined" : "idle");
+  }, [store.hasJoined, isReadyBusy, isReady]);
 
   useEffect(() => {
     void syncParticipants();
@@ -407,24 +492,33 @@ export const WarOfWitsScene = () => {
               </button>
               <button
                 onClick={toggleReady}
-                disabled={!playerAddress || !store.hasJoined}
+                disabled={!playerAddress || !store.hasJoined || isReadyBusy}
                 className={`btn btn-sm font-bold uppercase tracking-[0.08em] ${
-                  isReady
-                    ? "border border-amber-300/70 bg-amber-400/20 text-amber-100 hover:bg-amber-300/25"
+                  readyVisualState === "joined"
+                    ? "border border-sky-300/70 bg-sky-500/25 text-sky-100 hover:bg-sky-500/30"
                     : "border border-emerald-300/70 bg-emerald-400/20 text-emerald-100 hover:bg-emerald-300/25"
                 } disabled:border-white/20 disabled:bg-white/5 disabled:text-white/45`}
               >
-                {isReady ? "Set Unready" : "Set Ready"}
+                {isReadyBusy ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                    Processing...
+                  </span>
+                ) : readyVisualState === "joined" ? (
+                  "WAITING..."
+                ) : (
+                  "READY"
+                )}
               </button>
             </div>
             <p className="text-xs text-white/70">
-              Ready: {readyParticipants.length}/{participants.length}
+              Ready: {readyParticipants.length}/{stablePlayerCount}
             </p>
-            {participants.length <= 1 ? <p className="text-xs text-rose-300">1 kişi varsa yarışma başlamaz.</p> : null}
-            {countdownLeft !== null && participants.length > 1 ? (
+            {stablePlayerCount <= 1 ? <p className="text-xs text-rose-300">1 kişi varsa yarışma başlamaz.</p> : null}
+            {countdownLeft !== null && stablePlayerCount > 1 ? (
               <p className="text-xs text-emerald-300">All ready. Starting in: {countdownLeft}</p>
             ) : null}
-            {countdownLeft === null && participants.length > 1 && readyParticipants.length < participants.length ? (
+            {countdownLeft === null && stablePlayerCount > 1 && readyParticipants.length < stablePlayerCount ? (
               <p className="text-xs text-rose-300">
                 Hazir vermesi bekleniyor: {participants.find(item => !readyParticipants.includes(item))}
               </p>
@@ -510,7 +604,7 @@ export const WarOfWitsScene = () => {
           </div>
           <div className="rounded-2xl border border-white/15 bg-[#1e1e24]/65 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-white/70">Players</p>
-            <p className="mt-2 text-xl font-bold">{participants.length}</p>
+            <p className="mt-2 text-xl font-bold">{stablePlayerCount}</p>
           </div>
         </div>
 
