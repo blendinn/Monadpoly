@@ -4,6 +4,20 @@ export const mockPot = 250;
 export const mockWalletBalance = 250;
 export const mockEntryFee = 0;
 export const initialContestants = 100;
+export const web3Participants = [
+  "0x9f7a...12c1",
+  "0x41de...88b2",
+  "0x77aa...0f45",
+  "0xc239...9ad0",
+  "0x18be...4f77",
+  "0xa912...b66e",
+  "0x5ce4...e130",
+  "0xdd10...44c2",
+  "0x3ea8...71a9",
+  "0x0f92...9d0e",
+  "0xbe22...ac18",
+  "0x6e41...33f2",
+];
 export const mockQuestions: QuizQuestion[] = [
   {
     id: "q-1",
