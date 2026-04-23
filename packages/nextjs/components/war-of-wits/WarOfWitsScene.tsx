@@ -276,7 +276,7 @@ export const WarOfWitsScene = () => {
     }
 
     const isLastQuestion = store.currentQuestionIndex >= TOTAL_QUESTIONS - 1;
-    if (isLastQuestion || winnerCandidate) {
+    if (isLastQuestion) {
       dispatch({ type: "FINISH", at: Date.now() });
       setStatusMessage("Game finished. Claim reward if you survived.");
       void confetti({ particleCount: 220, spread: 140, origin: { y: 0.6 } });
@@ -376,9 +376,7 @@ export const WarOfWitsScene = () => {
         return (
           <div className="space-y-4 rounded-2xl border border-emerald-400/35 bg-black/50 p-5">
             <p className="text-3xl font-black tracking-[0.2em] text-emerald-300">VICTORY</p>
-            <p className="text-sm text-white/70">
-              10 questions completed or one player left. Pool distributed to survivors.
-            </p>
+            <p className="text-sm text-white/70">You survived until question 10. Pool distributed to survivors.</p>
             <p className="text-sm text-emerald-200">Auto reset in {FINISHED_SECONDS} seconds.</p>
             <p className="text-xs text-white/70">
               Winners: {Math.max(1, joinedPlayers.length)} | Pool: {store.pot.toFixed(2)} MON
