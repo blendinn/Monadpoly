@@ -30,9 +30,11 @@ export const LiveBlitzFeed = ({ winners, eliminations }: LiveBlitzFeedProps) => 
             transition={{ duration: 20, ease: "linear", repeat: Infinity }}
             className="flex gap-3"
           >
-            {winnerMarquee.map((item, index) => (
-              <WinnerCard key={`${item.id}-${index}`} item={item} />
-            ))}
+            {winnerMarquee.length > 0 ? (
+              winnerMarquee.map((item, index) => <WinnerCard key={`${item.id}-${index}`} item={item} />)
+            ) : (
+              <p className="text-sm text-[#6dffab]/70">Waiting for round results...</p>
+            )}
           </motion.div>
         </div>
       </div>
@@ -45,14 +47,18 @@ export const LiveBlitzFeed = ({ winners, eliminations }: LiveBlitzFeedProps) => 
             transition={{ duration: 17, ease: "linear", repeat: Infinity }}
             className="flex gap-2"
           >
-            {eliminationMarquee.map((entry, index) => (
-              <p
-                key={`${entry.id}-${index}`}
-                className="min-w-max rounded-md border border-[#ff315f]/30 bg-[#ff315f]/10 px-2 py-1 text-xs text-[#ff9cb4]"
-              >
-                {entry.playerName} {"->"} {entry.wrongAnswer}
-              </p>
-            ))}
+            {eliminationMarquee.length > 0 ? (
+              eliminationMarquee.map((entry, index) => (
+                <p
+                  key={`${entry.id}-${index}`}
+                  className="min-w-max rounded-md border border-[#ff315f]/30 bg-[#ff315f]/10 px-2 py-1 text-xs text-[#ff9cb4]"
+                >
+                  {entry.playerName} {"->"} {entry.wrongAnswer}
+                </p>
+              ))
+            ) : (
+              <p className="text-xs text-[#ff9cb4]/70">No eliminations yet.</p>
+            )}
           </motion.div>
         </div>
       </div>

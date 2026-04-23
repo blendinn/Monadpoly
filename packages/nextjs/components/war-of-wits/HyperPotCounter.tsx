@@ -20,16 +20,7 @@ export const HyperPotCounter = ({ basePot, pulseKey, playersRemaining, potential
   const [displayPot, setDisplayPot] = useState(basePot);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const volatility = Math.random() * 14;
-      setDisplayPot(previous => previous + volatility / 40);
-    }, 60);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    setDisplayPot(current => Math.max(current, basePot));
+    setDisplayPot(basePot);
   }, [basePot]);
 
   const slotDigits = useMemo(() => formatPot(displayPot), [displayPot]);

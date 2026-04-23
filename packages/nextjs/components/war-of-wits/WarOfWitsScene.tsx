@@ -26,7 +26,7 @@ const victoryConfetti = () => {
 
 export const WarOfWitsScene = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [pot, setPot] = useState(mockPot);
+  const [pot] = useState(mockPot);
   const [potPulseKey, setPotPulseKey] = useState(0);
   const [glitchTick, setGlitchTick] = useState(0);
   const [edgeGlowTick, setEdgeGlowTick] = useState(0);
@@ -36,6 +36,7 @@ export const WarOfWitsScene = () => {
   const [walletBalance] = useState(mockWalletBalance);
   const [sabotageSpent, setSabotageSpent] = useState(0);
   const [eliminationBurstKey, setEliminationBurstKey] = useState(0);
+  const [aliveContestants, setAliveContestants] = useState<string[]>([]);
   const [winners, setWinners] = useState<WinnerItem[]>([]);
   const [eliminations, setEliminations] = useState<EliminationItem[]>([]);
 
@@ -45,45 +46,62 @@ export const WarOfWitsScene = () => {
 
   const triggerEdgeGlow = () => setEdgeGlowTick(previous => previous + 1);
 
-  const handleAnswer = (isCorrect: boolean, optionLabel: string) => {
-    const player = mockPlayers[Math.floor(Math.random() * mockPlayers.length)];
+  const shuffle = (list: string[]) => [...list].sort(() => Math.random() - 0.5);
+
+  const resolveRound = (isCorrect: boolean, chosenOptionLabel: string) => {
+    if (aliveContestants.length <= 1) return;
+    const pool = shuffle(aliveContestants);
+    const difficultyRatio = Math.min(0.62, 0.2 + questionIndex * 0.012);
+    const failRatio = isCorrect ? difficultyRatio : Math.min(0.75, difficultyRatio + 0.16);
+    const eliminateCount = Math.min(pool.length - 1, Math.max(1, Math.round(pool.length * failRatio)));
+    const eliminated = pool.slice(0, eliminateCount);
+    const survived = pool.slice(eliminateCount);
+    const wrongOptions = currentQuestion.options
+      .filter(option => option.id !== currentQuestion.correctOptionId)
+      .map(option => option.label);
+
+    setAliveContestants(survived);
+    setPlayersRemaining(survived.length);
+    setPotPulseKey(previous => previous + 1);
+    if (eliminated.length > 0) {
+      setEliminationBurstKey(previous => previous + 1);
+    }
+
+    setWinners(previous => {
+      const nextItems: WinnerItem[] = survived.slice(0, 10).map((name, index) => ({
+        id: `win-${Date.now()}-${index}`,
+        playerName: name,
+      }));
+      return [...nextItems, ...previous].slice(0, 32);
+    });
+
+    setEliminations(previous => {
+      const nextItems: EliminationItem[] = eliminated.slice(0, 10).map((name, index) => ({
+        id: `el-${Date.now()}-${index}`,
+        playerName: name,
+        wrongAnswer: isCorrect ? wrongOptions[Math.floor(Math.random() * wrongOptions.length)] : chosenOptionLabel,
+      }));
+      return [...nextItems, ...previous].slice(0, 32);
+    });
+
     if (isCorrect) {
       burstConfetti();
-      setPot(previous => previous + 3.2 + Math.random() * 5.8);
-      setPotPulseKey(previous => previous + 1);
-      setWinners(previous => {
-        const next: WinnerItem = {
-          id: `win-${Date.now()}`,
-          playerName: player,
-        };
-        return [next, ...previous].slice(0, 12);
-      });
     } else {
       setGlitchTick(previous => previous + 1);
-      setPlayersRemaining(previous => Math.max(1, previous - (1 + Math.floor(Math.random() * 4))));
-      setEliminationBurstKey(previous => previous + 1);
-      setEliminations(previous => {
-        const next: EliminationItem = {
-          id: `el-${Date.now()}`,
-          playerName: player,
-          wrongAnswer: optionLabel,
-        };
-        return [next, ...previous].slice(0, 14);
-      });
     }
+
+    if (survived.length <= 1) {
+      victoryConfetti();
+      setVictoryVisible(true);
+      setTimeout(() => setVictoryVisible(false), 2600);
+    }
+
     triggerEdgeGlow();
-    setTimeout(() => setQuestionIndex(previous => previous + 1), 900);
+    setTimeout(() => setQuestionIndex(previous => previous + 1), 1000);
   };
 
   const handleTimeUp = () => {
-    setGlitchTick(previous => previous + 1);
-    setPlayersRemaining(previous => Math.max(1, previous - 2));
-    setEliminationBurstKey(previous => previous + 1);
-    const player = mockPlayers[Math.floor(Math.random() * mockPlayers.length)];
-    setEliminations(previous =>
-      [{ id: `timeout-${Date.now()}`, playerName: player, wrongAnswer: "Time Out" }, ...previous].slice(0, 14),
-    );
-    setTimeout(() => setQuestionIndex(previous => previous + 1), 900);
+    resolveRound(false, "Time Out");
   };
 
   const handleSabotage = (type: SabotageType) => {
@@ -101,27 +119,25 @@ export const WarOfWitsScene = () => {
     setTimeout(() => setVictoryVisible(false), 2600);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPot(previous => previous + Math.random() * 0.5);
-    }, 2400);
-    return () => clearInterval(interval);
-  }, []);
+  const handleAnswer = (isCorrect: boolean, optionLabel: string) => {
+    resolveRound(isCorrect, optionLabel);
+  };
 
   useEffect(() => {
-    if (winners.length > 0) return;
+    if (aliveContestants.length > 0) return;
+    const seededContestants = Array.from({ length: initialContestants }, (_, index) => {
+      const name = mockPlayers[index % mockPlayers.length];
+      return `${name}_${String(index + 1).padStart(2, "0")}`;
+    });
+    setAliveContestants(seededContestants);
+    setPlayersRemaining(seededContestants.length);
     setWinners(
-      Array.from({ length: 8 }, (_, index) => ({
+      seededContestants.slice(0, 8).map((name, index) => ({
         id: `seed-win-${index}`,
-        playerName: mockPlayers[index % mockPlayers.length],
+        playerName: name,
       })),
     );
-    setEliminations([
-      { id: "seed-el-1", playerName: "Bob", wrongAnswer: "Option C" },
-      { id: "seed-el-2", playerName: "Nisa", wrongAnswer: "Option D" },
-      { id: "seed-el-3", playerName: "Mert", wrongAnswer: "Option B" },
-    ]);
-  }, [winners.length]);
+  }, [aliveContestants.length]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#000000] px-3 py-5 text-white sm:px-6 sm:py-8">
@@ -148,7 +164,7 @@ export const WarOfWitsScene = () => {
 
       <VictoryOverlay visible={victoryVisible} wonAmount={pot} />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-5">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs uppercase tracking-[0.2em] text-[#3FD4FF] sm:text-sm">
             The War of Wits - Monad Blitz Kayseri
@@ -169,11 +185,7 @@ export const WarOfWitsScene = () => {
         />
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-          <div className="xl:col-span-3">
-            <LiveBlitzFeed winners={winners} eliminations={eliminations} />
-          </div>
-
-          <div className="xl:col-span-6 space-y-4">
+          <div className="xl:col-span-8 space-y-4">
             <StickmanSpectacle
               totalPlayers={initialContestants}
               playersRemaining={playersRemaining}
@@ -188,7 +200,7 @@ export const WarOfWitsScene = () => {
             />
           </div>
 
-          <div className="xl:col-span-3 space-y-4">
+          <div className="xl:col-span-4 space-y-4">
             <HudSidebar
               walletBalance={walletBalance}
               totalSpent={totalSpent}
@@ -198,6 +210,8 @@ export const WarOfWitsScene = () => {
             <SabotageDeck onTrigger={handleSabotage} entryFee={mockEntryFee} />
           </div>
         </div>
+
+        <LiveBlitzFeed winners={winners} eliminations={eliminations} />
       </div>
     </main>
   );
