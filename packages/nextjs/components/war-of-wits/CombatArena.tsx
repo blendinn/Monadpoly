@@ -1,58 +1,43 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { QuizQuestion } from "./types";
 import { motion } from "framer-motion";
 
 type CombatArenaProps = {
   question: QuizQuestion;
-  onAnswer: (isCorrect: boolean, optionLabel: string) => void;
-  onTimeUp: () => void;
+  phaseLabel: string;
+  timeLeft: number;
+  selectedOptionId: string | null;
+  isInteractive: boolean;
+  onSelectAnswer: (optionId: string, optionLabel: string) => void;
   onEdgeGlow: () => void;
   glitchTick: number;
 };
 
-const ROUND_MS = 15000;
-
-export const CombatArena = ({ question, onAnswer, onTimeUp, onEdgeGlow, glitchTick }: CombatArenaProps) => {
-  const [timeLeft, setTimeLeft] = useState(ROUND_MS);
-  const [selected, setSelected] = useState<string | null>(null);
+export const CombatArena = ({
+  question,
+  phaseLabel,
+  timeLeft,
+  selectedOptionId,
+  isInteractive,
+  onSelectAnswer,
+  onEdgeGlow,
+  glitchTick,
+}: CombatArenaProps) => {
   const [optimisticSuccess, setOptimisticSuccess] = useState<string | null>(null);
-  const didTimeoutRef = useRef(false);
 
   useEffect(() => {
-    setTimeLeft(ROUND_MS);
-    setSelected(null);
     setOptimisticSuccess(null);
-    didTimeoutRef.current = false;
   }, [question.id]);
 
-  useEffect(() => {
-    if (timeLeft > 0 || selected || didTimeoutRef.current) return;
-    didTimeoutRef.current = true;
-    onTimeUp();
-  }, [onTimeUp, selected, timeLeft]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(previous => (selected ? previous : Math.max(0, previous - 40)));
-    }, 50);
-    return () => clearInterval(interval);
-  }, [selected]);
-
-  const progress = useMemo(() => (timeLeft / ROUND_MS) * 100, [timeLeft]);
+  const progress = useMemo(() => (Math.max(0, timeLeft) / 10) * 100, [timeLeft]);
 
   const handleOptionClick = (optionId: string, optionLabel: string) => {
-    if (selected) return;
-    setSelected(optionId);
-    didTimeoutRef.current = true;
+    if (!isInteractive || selectedOptionId) return;
     onEdgeGlow();
-
-    const isCorrect = optionId === question.correctOptionId;
-    if (isCorrect) {
-      setOptimisticSuccess(optionId);
-    }
-    onAnswer(isCorrect, optionLabel);
+    setOptimisticSuccess(optionId);
+    onSelectAnswer(optionId, optionLabel);
   };
 
   return (
@@ -64,8 +49,8 @@ export const CombatArena = ({ question, onAnswer, onTimeUp, onEdgeGlow, glitchTi
       className="relative rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur-2xl sm:p-7"
     >
       <div className="mb-3 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.2em] text-white/70">
-        <span>Question Timer</span>
-        <span>{Math.ceil(timeLeft / 1000)}s</span>
+        <span>{phaseLabel}</span>
+        <span>{timeLeft}s</span>
       </div>
 
       <div className="h-3 overflow-hidden rounded-full border border-[#ff315f]/50 bg-black/40">
@@ -81,8 +66,8 @@ export const CombatArena = ({ question, onAnswer, onTimeUp, onEdgeGlow, glitchTi
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {question.options.map(option => {
-          const isActive = selected === option.id;
-          const showGreen = optimisticSuccess === option.id;
+          const isActive = selectedOptionId === option.id;
+          const showGreen = optimisticSuccess === option.id || selectedOptionId === option.id;
           const buttonClass = showGreen
             ? "border-[#15ff7a] bg-[#15ff7a]/20 text-[#15ff7a] shadow-[0_0_22px_rgba(21,255,122,0.8)]"
             : isActive
@@ -96,7 +81,7 @@ export const CombatArena = ({ question, onAnswer, onTimeUp, onEdgeGlow, glitchTi
               whileTap={{ scale: 1.13, y: -4 }}
               animate={isActive ? { scale: [1, 1.1, 1.02] } : undefined}
               transition={{ duration: 0.32 }}
-              disabled={!!selected}
+              disabled={!isInteractive || !!selectedOptionId}
               onClick={() => handleOptionClick(option.id, option.label)}
               className={`rounded-2xl border px-4 py-4 text-left text-sm font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${buttonClass}`}
             >

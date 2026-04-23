@@ -13,6 +13,14 @@ import type { EliminationItem, SabotageType, WinnerItem } from "./types";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
 
+type GameState = "LOBBY" | "PLAYING" | "ELIMINATION" | "GAMEOVER";
+
+const LOBBY_SECONDS = 30;
+const PLAY_SECONDS = 10;
+const ELIMINATION_SECONDS = 3;
+const GAMEOVER_SECONDS = 30;
+const TOTAL_QUESTIONS = 10;
+
 const burstConfetti = () => {
   void confetti({ particleCount: 150, spread: 86, origin: { y: 0.62 } });
 };
@@ -25,6 +33,8 @@ const victoryConfetti = () => {
 };
 
 export const WarOfWitsScene = () => {
+  const [gameState, setGameState] = useState<GameState>("LOBBY");
+  const [stateTimer, setStateTimer] = useState(LOBBY_SECONDS);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [pot] = useState(mockPot);
   const [potPulseKey, setPotPulseKey] = useState(0);
@@ -39,14 +49,56 @@ export const WarOfWitsScene = () => {
   const [aliveContestants, setAliveContestants] = useState<string[]>([]);
   const [winners, setWinners] = useState<WinnerItem[]>([]);
   const [eliminations, setEliminations] = useState<EliminationItem[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<{ optionId: string; optionLabel: string } | null>(null);
+  const [roundResolved, setRoundResolved] = useState(false);
 
-  const currentQuestion = useMemo(() => mockQuestions[questionIndex % mockQuestions.length], [questionIndex]);
+  const currentQuestion = useMemo(() => mockQuestions[Math.min(questionIndex, TOTAL_QUESTIONS - 1)], [questionIndex]);
   const totalSpent = mockEntryFee + sabotageSpent;
   const potentialEarnings = playersRemaining > 0 ? pot / playersRemaining : pot;
 
   const triggerEdgeGlow = () => setEdgeGlowTick(previous => previous + 1);
-
   const shuffle = (list: string[]) => [...list].sort(() => Math.random() - 0.5);
+
+  const handleJoinGame = (player: string) => {
+    console.log("handleJoinGame", player);
+  };
+
+  const submitAnswer = (optionId: string) => {
+    console.log("submitAnswer", { questionId: currentQuestion.id, optionId });
+  };
+
+  const startPlaying = () => {
+    setGameState("PLAYING");
+    setStateTimer(PLAY_SECONDS);
+    setSelectedAnswer(null);
+    setRoundResolved(false);
+  };
+
+  const startElimination = () => {
+    setGameState("ELIMINATION");
+    setStateTimer(ELIMINATION_SECONDS);
+  };
+
+  const startGameOver = () => {
+    setGameState("GAMEOVER");
+    setStateTimer(GAMEOVER_SECONDS);
+    setVictoryVisible(true);
+    victoryConfetti();
+  };
+
+  const startLobby = () => {
+    setGameState("LOBBY");
+    setStateTimer(LOBBY_SECONDS);
+    setQuestionIndex(0);
+    setSelectedAnswer(null);
+    setRoundResolved(false);
+    setVictoryVisible(false);
+    setEliminations([]);
+    setWinners([]);
+    setPlayersRemaining(0);
+    setSabotageSpent(0);
+    setAliveContestants([]);
+  };
 
   const resolveRound = (isCorrect: boolean, chosenOptionLabel: string) => {
     if (aliveContestants.length <= 1) return;
@@ -90,18 +142,16 @@ export const WarOfWitsScene = () => {
       setGlitchTick(previous => previous + 1);
     }
 
-    if (survived.length <= 1) {
-      victoryConfetti();
-      setVictoryVisible(true);
-      setTimeout(() => setVictoryVisible(false), 2600);
-    }
-
     triggerEdgeGlow();
-    setTimeout(() => setQuestionIndex(previous => previous + 1), 1000);
   };
 
-  const handleTimeUp = () => {
-    resolveRound(false, "Time Out");
+  const resolveCurrentRoundIfNeeded = () => {
+    if (roundResolved || gameState !== "ELIMINATION") return;
+    const selectedId = selectedAnswer?.optionId;
+    const selectedLabel = selectedAnswer?.optionLabel ?? "Time Out";
+    const isCorrect = selectedId === currentQuestion.correctOptionId;
+    resolveRound(isCorrect, selectedLabel);
+    setRoundResolved(true);
   };
 
   const handleSabotage = (type: SabotageType) => {
@@ -113,31 +163,82 @@ export const WarOfWitsScene = () => {
   };
 
   const handleSimulateWin = () => {
-    triggerEdgeGlow();
-    victoryConfetti();
-    setVictoryVisible(true);
-    setTimeout(() => setVictoryVisible(false), 2600);
+    startGameOver();
   };
 
-  const handleAnswer = (isCorrect: boolean, optionLabel: string) => {
-    resolveRound(isCorrect, optionLabel);
+  const handleAnswerSelection = (optionId: string, optionLabel: string) => {
+    if (gameState !== "PLAYING" || selectedAnswer) return;
+    submitAnswer(optionId);
+    setSelectedAnswer({ optionId, optionLabel });
+    triggerEdgeGlow();
   };
 
   useEffect(() => {
-    if (aliveContestants.length > 0) return;
-    const seededContestants = Array.from({ length: initialContestants }, (_, index) => {
-      const name = mockPlayers[index % mockPlayers.length];
-      return `${name}_${String(index + 1).padStart(2, "0")}`;
-    });
-    setAliveContestants(seededContestants);
-    setPlayersRemaining(seededContestants.length);
-    setWinners(
-      seededContestants.slice(0, 8).map((name, index) => ({
-        id: `seed-win-${index}`,
-        playerName: name,
-      })),
-    );
-  }, [aliveContestants.length]);
+    startLobby();
+  }, []);
+
+  useEffect(() => {
+    if (gameState !== "LOBBY") return;
+    const joinInterval = setInterval(() => {
+      setAliveContestants(previous => {
+        if (previous.length >= initialContestants) return previous;
+        const nextIndex = previous.length + 1;
+        const baseName = mockPlayers[nextIndex % mockPlayers.length];
+        const nextPlayer = `${baseName}_${String(nextIndex).padStart(2, "0")}`;
+        handleJoinGame(nextPlayer);
+        const updated = [...previous, nextPlayer];
+        setPlayersRemaining(updated.length);
+        setWinners(updated.slice(-8).map((name, index) => ({ id: `join-${Date.now()}-${index}`, playerName: name })));
+        return updated;
+      });
+    }, 300);
+    return () => clearInterval(joinInterval);
+  }, [gameState]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStateTimer(previous => Math.max(0, previous - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (gameState === "LOBBY" && stateTimer === 0) {
+      startPlaying();
+      return;
+    }
+
+    if (gameState === "PLAYING" && stateTimer === 0) {
+      startElimination();
+      return;
+    }
+
+    if (gameState === "ELIMINATION") {
+      resolveCurrentRoundIfNeeded();
+      if (stateTimer === 0) {
+        const isFinalQuestion = questionIndex >= TOTAL_QUESTIONS - 1;
+        if (playersRemaining <= 1 || isFinalQuestion) {
+          startGameOver();
+        } else {
+          setQuestionIndex(previous => previous + 1);
+          startPlaying();
+        }
+      }
+      return;
+    }
+
+    if (gameState === "GAMEOVER" && stateTimer === 0) {
+      startLobby();
+    }
+  }, [
+    gameState,
+    stateTimer,
+    playersRemaining,
+    questionIndex,
+    roundResolved,
+    selectedAnswer,
+    currentQuestion.correctOptionId,
+  ]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#000000] px-3 py-5 text-white sm:px-6 sm:py-8">
@@ -162,7 +263,7 @@ export const WarOfWitsScene = () => {
         />
       ) : null}
 
-      <VictoryOverlay visible={victoryVisible} wonAmount={pot} />
+      <VictoryOverlay visible={victoryVisible || gameState === "GAMEOVER"} wonAmount={pot} />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-5">
         <div className="flex items-center justify-between gap-3">
@@ -176,6 +277,22 @@ export const WarOfWitsScene = () => {
             Simulate Win
           </button>
         </div>
+
+        {gameState === "LOBBY" ? (
+          <div className="rounded-2xl border border-cyan-300/40 bg-cyan-400/10 px-4 py-3 text-center text-sm font-semibold text-cyan-200">
+            Yarisma Basliyor... Katilimcilar Bekleniyor ({stateTimer}s)
+          </div>
+        ) : null}
+        {gameState === "ELIMINATION" ? (
+          <div className="rounded-2xl border border-[#ff315f]/45 bg-[#ff315f]/10 px-4 py-3 text-center text-sm font-semibold text-[#ff8baa]">
+            Elimination in progress... Wrong answers are being purged ({stateTimer}s)
+          </div>
+        ) : null}
+        {gameState === "GAMEOVER" ? (
+          <div className="rounded-2xl border border-[#15ff7a]/45 bg-[#15ff7a]/10 px-4 py-3 text-center text-sm font-semibold text-[#86ffc0]">
+            Yeni oyun {stateTimer} saniye icinde basliyor...
+          </div>
+        ) : null}
 
         <HyperPotCounter
           basePot={pot}
@@ -193,8 +310,11 @@ export const WarOfWitsScene = () => {
             />
             <CombatArena
               question={currentQuestion}
-              onAnswer={handleAnswer}
-              onTimeUp={handleTimeUp}
+              phaseLabel={gameState === "PLAYING" ? "Question Timer" : gameState}
+              timeLeft={gameState === "PLAYING" ? stateTimer : 0}
+              selectedOptionId={selectedAnswer?.optionId ?? null}
+              isInteractive={gameState === "PLAYING"}
+              onSelectAnswer={handleAnswerSelection}
               onEdgeGlow={triggerEdgeGlow}
               glitchTick={glitchTick}
             />
@@ -206,6 +326,7 @@ export const WarOfWitsScene = () => {
               totalSpent={totalSpent}
               entryFee={mockEntryFee}
               sabotageSpent={sabotageSpent}
+              isLobby={gameState === "LOBBY"}
             />
             <SabotageDeck onTrigger={handleSabotage} entryFee={mockEntryFee} />
           </div>
