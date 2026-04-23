@@ -1,45 +1,54 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { QuizQuestion } from "./types";
 import { motion } from "framer-motion";
 
 type CombatArenaProps = {
   question: QuizQuestion;
   onAnswer: (isCorrect: boolean, optionLabel: string) => void;
+  onTimeUp: () => void;
   onEdgeGlow: () => void;
   glitchTick: number;
 };
 
 const ROUND_MS = 15000;
 
-export const CombatArena = ({ question, onAnswer, onEdgeGlow, glitchTick }: CombatArenaProps) => {
+export const CombatArena = ({ question, onAnswer, onTimeUp, onEdgeGlow, glitchTick }: CombatArenaProps) => {
   const [timeLeft, setTimeLeft] = useState(ROUND_MS);
   const [selected, setSelected] = useState<string | null>(null);
   const [optimisticSuccess, setOptimisticSuccess] = useState<string | null>(null);
+  const didTimeoutRef = useRef(false);
 
   useEffect(() => {
     setTimeLeft(ROUND_MS);
     setSelected(null);
     setOptimisticSuccess(null);
+    didTimeoutRef.current = false;
   }, [question.id]);
 
   useEffect(() => {
+    if (timeLeft > 0 || selected || didTimeoutRef.current) return;
+    didTimeoutRef.current = true;
+    onTimeUp();
+  }, [onTimeUp, selected, timeLeft]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      setTimeLeft(previous => Math.max(0, previous - 40));
+      setTimeLeft(previous => (selected ? previous : Math.max(0, previous - 40)));
     }, 50);
     return () => clearInterval(interval);
-  }, []);
+  }, [selected]);
 
   const progress = useMemo(() => (timeLeft / ROUND_MS) * 100, [timeLeft]);
 
   const handleOptionClick = (optionId: string, optionLabel: string) => {
     if (selected) return;
     setSelected(optionId);
+    didTimeoutRef.current = true;
     onEdgeGlow();
 
-    // Test mode: option A is always correct.
-    const isCorrect = optionId === "a";
+    const isCorrect = optionId === question.correctOptionId;
     if (isCorrect) {
       setOptimisticSuccess(optionId);
     }
@@ -68,6 +77,7 @@ export const CombatArena = ({ question, onAnswer, onEdgeGlow, glitchTick }: Comb
       </div>
 
       <h2 className="mt-6 text-lg font-bold text-white sm:text-2xl">{question.prompt}</h2>
+      {question.hint ? <p className="mt-2 text-sm text-cyan-200/70">Hint: {question.hint}</p> : null}
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {question.options.map(option => {

@@ -9,7 +9,7 @@ import { SabotageDeck } from "./SabotageDeck";
 import { StickmanSpectacle } from "./StickmanSpectacle";
 import { VictoryOverlay } from "./VictoryOverlay";
 import { initialContestants, mockEntryFee, mockPlayers, mockPot, mockQuestions, mockWalletBalance } from "./mockData";
-import type { ChainBlockItem, EliminationItem, SabotageType } from "./types";
+import type { EliminationItem, SabotageType, WinnerItem } from "./types";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
 
@@ -36,7 +36,7 @@ export const WarOfWitsScene = () => {
   const [walletBalance] = useState(mockWalletBalance);
   const [sabotageSpent, setSabotageSpent] = useState(0);
   const [eliminationBurstKey, setEliminationBurstKey] = useState(0);
-  const [chainBlocks, setChainBlocks] = useState<ChainBlockItem[]>([]);
+  const [winners, setWinners] = useState<WinnerItem[]>([]);
   const [eliminations, setEliminations] = useState<EliminationItem[]>([]);
 
   const currentQuestion = useMemo(() => mockQuestions[questionIndex % mockQuestions.length], [questionIndex]);
@@ -45,22 +45,16 @@ export const WarOfWitsScene = () => {
 
   const triggerEdgeGlow = () => setEdgeGlowTick(previous => previous + 1);
 
-  const randomHash = () => Math.random().toString(16).slice(2, 7).toUpperCase();
-
   const handleAnswer = (isCorrect: boolean, optionLabel: string) => {
     const player = mockPlayers[Math.floor(Math.random() * mockPlayers.length)];
     if (isCorrect) {
       burstConfetti();
       setPot(previous => previous + 3.2 + Math.random() * 5.8);
       setPotPulseKey(previous => previous + 1);
-      setChainBlocks(previous => {
-        const prevHash = previous[0]?.hash ?? "GEN00";
-        const next: ChainBlockItem = {
-          id: `blk-${Date.now()}`,
+      setWinners(previous => {
+        const next: WinnerItem = {
+          id: `win-${Date.now()}`,
           playerName: player,
-          answerLabel: optionLabel,
-          hash: randomHash(),
-          prevHash,
         };
         return [next, ...previous].slice(0, 12);
       });
@@ -78,6 +72,17 @@ export const WarOfWitsScene = () => {
       });
     }
     triggerEdgeGlow();
+    setTimeout(() => setQuestionIndex(previous => previous + 1), 900);
+  };
+
+  const handleTimeUp = () => {
+    setGlitchTick(previous => previous + 1);
+    setPlayersRemaining(previous => Math.max(1, previous - 2));
+    setEliminationBurstKey(previous => previous + 1);
+    const player = mockPlayers[Math.floor(Math.random() * mockPlayers.length)];
+    setEliminations(previous =>
+      [{ id: `timeout-${Date.now()}`, playerName: player, wrongAnswer: "Time Out" }, ...previous].slice(0, 14),
+    );
     setTimeout(() => setQuestionIndex(previous => previous + 1), 900);
   };
 
@@ -104,14 +109,11 @@ export const WarOfWitsScene = () => {
   }, []);
 
   useEffect(() => {
-    if (chainBlocks.length > 0) return;
-    setChainBlocks(
-      Array.from({ length: 6 }, (_, index) => ({
-        id: `seed-${index}`,
+    if (winners.length > 0) return;
+    setWinners(
+      Array.from({ length: 8 }, (_, index) => ({
+        id: `seed-win-${index}`,
         playerName: mockPlayers[index % mockPlayers.length],
-        answerLabel: "Parallel execution with low latency finality",
-        hash: randomHash(),
-        prevHash: index === 0 ? "GEN00" : randomHash(),
       })),
     );
     setEliminations([
@@ -119,7 +121,7 @@ export const WarOfWitsScene = () => {
       { id: "seed-el-2", playerName: "Nisa", wrongAnswer: "Option D" },
       { id: "seed-el-3", playerName: "Mert", wrongAnswer: "Option B" },
     ]);
-  }, [chainBlocks.length]);
+  }, [winners.length]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#000000] px-3 py-5 text-white sm:px-6 sm:py-8">
@@ -168,7 +170,7 @@ export const WarOfWitsScene = () => {
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
           <div className="xl:col-span-3">
-            <LiveBlitzFeed blocks={chainBlocks} eliminations={eliminations} />
+            <LiveBlitzFeed winners={winners} eliminations={eliminations} />
           </div>
 
           <div className="xl:col-span-6 space-y-4">
@@ -180,6 +182,7 @@ export const WarOfWitsScene = () => {
             <CombatArena
               question={currentQuestion}
               onAnswer={handleAnswer}
+              onTimeUp={handleTimeUp}
               onEdgeGlow={triggerEdgeGlow}
               glitchTick={glitchTick}
             />

@@ -7,16 +7,15 @@ export type QuizQuestion = {
   id: string;
   prompt: string;
   options: QuizOption[];
+  correctOptionId: string;
+  hint?: string;
 };
 
 export type SabotageType = "ice" | "smoke" | "time";
 
-export type ChainBlockItem = {
+export type WinnerItem = {
   id: string;
   playerName: string;
-  answerLabel: string;
-  hash: string;
-  prevHash: string;
 };
 
 export type EliminationItem = {

@@ -1,3 +1,4 @@
+import monadQuestions from "../../../../monad_questions.json";
 import type { QuizQuestion } from "./types";
 
 export const mockPot = 250;
@@ -5,38 +6,32 @@ export const mockWalletBalance = 250;
 export const mockEntryFee = 0.25;
 export const initialContestants = 100;
 
-export const mockQuestions: QuizQuestion[] = [
-  {
-    id: "q1",
-    prompt: "Why does Monad stand out for realtime Game-Fi quiz loops?",
-    options: [
-      { id: "a", label: "Parallel execution with low latency finality" },
-      { id: "b", label: "Slow UX but lower cost only" },
-      { id: "c", label: "Only bridge speed improvements" },
-      { id: "d", label: "No mempool and no signatures needed" },
-    ],
-  },
-  {
-    id: "q2",
-    prompt: "What creates instant dopamine in a web3 elimination arena?",
-    options: [
-      { id: "a", label: "Fast feedback with visible chain progression" },
-      { id: "b", label: "Long and static loading moments" },
-      { id: "c", label: "No stakes and hidden outcomes" },
-      { id: "d", label: "Monochrome and low contrast cards" },
-    ],
-  },
-  {
-    id: "q3",
-    prompt: "Which feature best amplifies high-stakes competition?",
-    options: [
-      { id: "a", label: "Live pot growth plus countdown pressure" },
-      { id: "b", label: "Minimal animation and no timer" },
-      { id: "c", label: "No elimination effects" },
-      { id: "d", label: "Muted interactions and low saturation" },
-    ],
-  },
-];
+type RawQuestion = {
+  id: number;
+  question: string;
+  a: string;
+  b: string;
+  c: string;
+  d: string;
+  answer: string;
+  hint?: string;
+};
+
+const orderedQuestions = [...(monadQuestions as RawQuestion[])].sort((left, right) => left.id - right.id);
+
+// Questions are rendered from easy to hard via ascending id.
+export const mockQuestions: QuizQuestion[] = orderedQuestions.map(item => ({
+  id: `q-${item.id}`,
+  prompt: item.question,
+  options: [
+    { id: "a", label: item.a },
+    { id: "b", label: item.b },
+    { id: "c", label: item.c },
+    { id: "d", label: item.d },
+  ],
+  correctOptionId: item.answer.toLowerCase(),
+  hint: item.hint,
+}));
 
 export const mockPlayers = [
   "Aylin",

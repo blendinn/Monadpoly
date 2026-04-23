@@ -1,0 +1,502 @@
+[
+  {
+    "id": 1,
+    "question": "What is the name of the high-performance blockchain event held in Kayseri on April 23, 2026?",
+    "a": "Monad Party",
+    "b": "Monad Blitz Kayseri",
+    "c": "Crypto Day",
+    "d": "Web3 Summit",
+    "answer": "b",
+    "hint": "It happened right here in Kayseri!"
+  },
+  {
+    "id": 2,
+    "question": "Which university in Kayseri is the hub for Monad developers and top-tier engineers?",
+    "a": "Erciyes University",
+    "b": "Kayseri University",
+    "c": "Abdullah Gül University (AGÜ)",
+    "d": "Nuh Naci Yazgan",
+    "answer": "c",
+    "hint": "The best technical university in the city."
+  },
+  {
+    "id": 3,
+    "question": "Who is the legendary Co-Founder and CEO of Monad?",
+    "a": "Vitalik Buterin",
+    "b": "Keone Hon",
+    "c": "Anatoly Yakovenko",
+    "d": "Charles Hoskinson",
+    "answer": "b",
+    "hint": "He previously worked at Jump Trading."
+  },
+  {
+    "id": 4,
+    "question": "Which Monad Co-Founder is a tech leader known for building high-frequency trading systems?",
+    "a": "James Hunsaker",
+    "b": "Satoshi Nakamoto",
+    "c": "Gavin Wood",
+    "d": "Brian Armstrong",
+    "answer": "a",
+    "hint": "He leads the engineering side at Monad."
+  },
+  {
+    "id": 5,
+    "question": "What is the main technical innovation that makes Monad faster than Ethereum?",
+    "a": "Proof of Work",
+    "b": "Parallel Execution",
+    "c": "Higher Gas Fees",
+    "d": "Bigger Block Size only",
+    "answer": "b",
+    "hint": "Doing many tasks at the same time."
+  },
+  {
+    "id": 6,
+    "question": "Monad is 'EVM Compatible'. What does this mean for AGÜ developers?",
+    "a": "They must learn a new language",
+    "b": "They can use their existing Solidity skills",
+    "c": "They can only build games",
+    "d": "It only works on Windows",
+    "answer": "b",
+    "hint": "Same language as Ethereum."
+  },
+  {
+    "id": 7,
+    "question": "What is 'MonadDb'?",
+    "a": "A simple SQL database",
+    "b": "A custom, high-performance state database for Monad",
+    "c": "A social network for devs",
+    "d": "A cloud storage like Google Drive",
+    "answer": "b",
+    "hint": "It solves the storage bottleneck."
+  },
+  {
+    "id": 8,
+    "question": "How many transactions per second (TPS) does Monad aim to reach?",
+    "a": "100 TPS",
+    "b": "1,000 TPS",
+    "c": "10,000 TPS",
+    "d": "500 TPS",
+    "answer": "c",
+    "hint": "Think big, think ten thousand."
+  },
+  {
+    "id": 9,
+    "question": "What do we call the computers that secure the Monad network?",
+    "a": "Miners",
+    "b": "Validators",
+    "c": "Players",
+    "d": "Admins",
+    "answer": "b",
+    "hint": "They validate the transactions."
+  },
+  {
+    "id": 10,
+    "question": "In Web3, what does 'Self-Custody' mean?",
+    "a": "The bank holds your money",
+    "b": "You own your private keys and control your funds",
+    "c": "Google saves your password",
+    "d": "The government protects your wallet",
+    "answer": "b",
+    "hint": "You are your own bank."
+  },
+  {
+    "id": 11,
+    "question": "What is the consensus mechanism used by Monad?",
+    "a": "Proof of Work",
+    "b": "MonadBFT",
+    "c": "Proof of History only",
+    "d": "Delegated Byzantine",
+    "answer": "b",
+    "hint": "It has 'Monad' in the name."
+  },
+  {
+    "id": 12,
+    "question": "Which of these is a 'Layer 2' helper for Ethereum, while Monad is 'Layer 1'?",
+    "a": "Arbitrum",
+    "b": "Bitcoin",
+    "c": "Solana",
+    "d": "Dogecoin",
+    "answer": "a",
+    "hint": "It's built 'on top' of Ethereum."
+  },
+  {
+    "id": 13,
+    "question": "What is a 'Gas Fee'?",
+    "a": "A tip for the developer",
+    "b": "The cost of processing a transaction on the network",
+    "c": "A monthly subscription",
+    "d": "Free credits",
+    "answer": "b",
+    "hint": "Think of fuel for a car."
+  },
+  {
+    "id": 14,
+    "question": "What is the 'Genesis Block'?",
+    "a": "The last block",
+    "b": "The very first block of a blockchain",
+    "c": "A block with an error",
+    "d": "A block for miners only",
+    "answer": "b",
+    "hint": "The beginning of the chain."
+  },
+  {
+    "id": 15,
+    "question": "In Web3, what is a 'DApp'?",
+    "a": "A desktop application",
+    "b": "A decentralized application",
+    "c": "A digital app",
+    "d": "A data app",
+    "answer": "b",
+    "hint": "Runs on a blockchain."
+  },
+  {
+    "id": 16,
+    "question": "What should you NEVER share with anyone to keep your wallet safe?",
+    "a": "Your wallet address",
+    "b": "Your Seed Phrase / Private Key",
+    "c": "Your username",
+    "d": "Your profile picture",
+    "answer": "b",
+    "hint": "These are the secret 12-24 words."
+  },
+  {
+    "id": 17,
+    "question": "What is an 'Airdrop'?",
+    "a": "A way to send files to an iPhone",
+    "b": "Free distribution of tokens to users",
+    "c": "A price drop in the market",
+    "d": "Buying tokens from a bank",
+    "answer": "b",
+    "hint": "Free gifts from a project."
+  },
+  {
+    "id": 18,
+    "question": "What does 'DAO' stand for?",
+    "a": "Digital Asset Organization",
+    "b": "Decentralized Autonomous Organization",
+    "c": "Data Access Office",
+    "d": "Daily Active Operators",
+    "answer": "b",
+    "hint": "A company run by code and community."
+  },
+  {
+    "id": 19,
+    "question": "Which term describes a 'Bull Market'?",
+    "a": "Prices are falling",
+    "b": "Prices are rising",
+    "c": "Market is closed",
+    "d": "No trading allowed",
+    "answer": "b",
+    "hint": "Bulls push their horns UP."
+  },
+  {
+    "id": 20,
+    "question": "Which term describes a 'Bear Market'?",
+    "a": "Prices are rising",
+    "b": "Prices are falling",
+    "c": "Bitcoin is stable",
+    "d": "Everything is free",
+    "answer": "b",
+    "hint": "Bears swipe their paws DOWN."
+  },
+  {
+    "id": 21,
+    "question": "What is the maximum supply of Bitcoin?",
+    "a": "Unlimited",
+    "b": "21 Million",
+    "c": "100 Million",
+    "d": "50 Million",
+    "answer": "b",
+    "hint": "A fixed number starting with 2."
+  },
+  {
+    "id": 22,
+    "question": "What is a 'Stablecoin'?",
+    "a": "A coin that changes price fast",
+    "b": "A coin pegged to a currency like the USD",
+    "c": "A coin for horses",
+    "d": "A coin that never sells",
+    "answer": "b",
+    "hint": "It stays at $1.00."
+  },
+  {
+    "id": 23,
+    "question": "What is the primary coding language for Monad smart contracts?",
+    "a": "Python",
+    "b": "Solidity",
+    "c": "Java",
+    "d": "C++",
+    "answer": "b",
+    "hint": "The standard for Ethereum Virtual Machine."
+  },
+  {
+    "id": 24,
+    "question": "What is a 'Bridge' in crypto?",
+    "a": "A way to delete tokens",
+    "b": "A tool to transfer assets between different blockchains",
+    "c": "A physical bridge for miners",
+    "d": "A secure password",
+    "answer": "b",
+    "hint": "Connecting two separate chains."
+  },
+  {
+    "id": 25,
+    "question": "What does 'HODL' mean in the crypto community?",
+    "a": "Sell everything",
+    "b": "Hold onto your assets and don't sell",
+    "c": "Hack Other Digital Ledgers",
+    "d": "High Output Digital Loan",
+    "answer": "b",
+    "hint": "A famous typo of 'Hold'."
+  },
+  {
+    "id": 26,
+    "question": "What is a 'Rug Pull'?",
+    "a": "Cleaning the floor",
+    "b": "A scam where developers abandon a project and steal funds",
+    "c": "Buying a lot of tokens",
+    "d": "Winning a hackathon",
+    "answer": "b",
+    "hint": "Pulling the carpet from under someone."
+  },
+  {
+    "id": 27,
+    "question": "What is a 'Faucet'?",
+    "a": "A place to pay taxes",
+    "b": "A site that gives small amounts of free testnet tokens",
+    "c": "A high-speed miner",
+    "d": "A crypto bank",
+    "answer": "b",
+    "hint": "Like water dripping in the kitchen."
+  },
+  {
+    "id": 28,
+    "question": "Which of these is a 'Hardware Wallet'?",
+    "a": "MetaMask",
+    "b": "Ledger",
+    "c": "Phantom",
+    "d": "Trust Wallet",
+    "answer": "b",
+    "hint": "A physical device like a USB."
+  },
+  {
+    "id": 29,
+    "question": "What is the 'Whitepaper' of a project?",
+    "a": "A coloring book",
+    "b": "The technical document explaining the project vision",
+    "c": "A list of investors",
+    "d": "The project's social media page",
+    "answer": "b",
+    "hint": "The plan/rules of the crypto."
+  },
+  {
+    "id": 30,
+    "question": "What does 'DeFi' stand for?",
+    "a": "Defined Finance",
+    "b": "Decentralized Finance",
+    "c": "Digital Fees",
+    "d": "Department of Finance",
+    "answer": "b",
+    "hint": "Finance without central banks."
+  },
+  {
+    "id": 31,
+    "question": "What is an 'NFT'?",
+    "a": "National Finance Token",
+    "b": "Non-Fungible Token",
+    "c": "New Fast Technology",
+    "d": "Node File Transfer",
+    "answer": "b",
+    "hint": "A unique digital asset."
+  },
+  {
+    "id": 32,
+    "question": "What happens in a 'Halving' event?",
+    "a": "Supply is doubled",
+    "b": "Mining rewards are cut by 50%",
+    "c": "Price is locked",
+    "d": "Network is closed",
+    "answer": "b",
+    "hint": "Making the coin more rare."
+  },
+  {
+    "id": 33,
+    "question": "What is the 'Mainnet'?",
+    "a": "A test version",
+    "b": "The live, primary blockchain network with real value",
+    "c": "A social network",
+    "d": "A private database",
+    "answer": "b",
+    "hint": "The real deal, where real money lives."
+  },
+  {
+    "id": 34,
+    "question": "What is 'Staking'?",
+    "a": "Selling your tokens",
+    "b": "Locking tokens to support network security and earn rewards",
+    "c": "Sending tokens to a friend",
+    "d": "Deleting your wallet",
+    "answer": "b",
+    "hint": "Helping the network grow."
+  },
+  {
+    "id": 35,
+    "question": "Who created Bitcoin?",
+    "a": "Elon Musk",
+    "b": "Satoshi Nakamoto",
+    "c": "Vitalik Buterin",
+    "d": "Keone Hon",
+    "answer": "b",
+    "hint": "A mystery person or group."
+  },
+  {
+    "id": 36,
+    "question": "What is a 'Smart Contract'?",
+    "a": "A paper contract",
+    "b": "Self-executing code on a blockchain",
+    "c": "A fast internet plan",
+    "d": "A phone agreement",
+    "answer": "b",
+    "hint": "Digital rules that work automatically."
+  },
+  {
+    "id": 37,
+    "question": "Which of these is a Centralized Exchange (CEX)?",
+    "a": "Uniswap",
+    "b": "Binance",
+    "c": "PancakeSwap",
+    "d": "Curve",
+    "answer": "b",
+    "hint": "A company controls it."
+  },
+  {
+    "id": 38,
+    "question": "What is 'Web3'?",
+    "a": "Read-only internet",
+    "b": "Read-write-own internet",
+    "c": "Only social media",
+    "d": "Internet for cars",
+    "answer": "b",
+    "hint": "Ownership is the key."
+  },
+  {
+    "id": 39,
+    "question": "What is 'FOMO'?",
+    "a": "Fear Of Missing Out",
+    "b": "Fast Online Money Order",
+    "c": "Free Option Market Offer",
+    "d": "Find Other Miners Online",
+    "answer": "a",
+    "hint": "The panic of seeing others get rich."
+  },
+  {
+    "id": 40,
+    "question": "What is 'FUD'?",
+    "a": "Fear, Uncertainty, and Doubt",
+    "b": "Fast User Data",
+    "c": "Finance Under Development",
+    "d": "Free Unlimited Dollars",
+    "answer": "a",
+    "hint": "Spreading negative rumors."
+  },
+  {
+    "id": 41,
+    "question": "Which blockchain is Monad often compared to due to its high speed?",
+    "a": "Bitcoin",
+    "b": "Solana",
+    "c": "Litecoin",
+    "d": "Dogecoin",
+    "answer": "b",
+    "hint": "The 'Solana of Ethereum'."
+  },
+  {
+    "id": 42,
+    "question": "What is the 'Public Key'?",
+    "a": "Your password",
+    "b": "Your wallet address used to receive money",
+    "c": "A key to the city",
+    "d": "Your social security number",
+    "answer": "b",
+    "hint": "Like your IBAN."
+  },
+  {
+    "id": 43,
+    "question": "What is 'Liquidity'?",
+    "a": "Water on the server",
+    "b": "The ease of converting an asset to cash or other tokens",
+    "c": "A very fast transaction",
+    "d": "Free tokens",
+    "answer": "b",
+    "hint": "Can you sell it easily?"
+  },
+  {
+    "id": 44,
+    "question": "What is a 'Whale' in crypto?",
+    "a": "An actual fish",
+    "b": "A person or entity holding a massive amount of crypto",
+    "c": "A very slow network",
+    "d": "A new blockchain",
+    "answer": "b",
+    "hint": "Big fish in a small pond."
+  },
+  {
+    "id": 45,
+    "question": "Which year was the Monad Blitz hackathon held in Kayseri?",
+    "a": "2024",
+    "b": "2025",
+    "c": "2026",
+    "d": "2022",
+    "answer": "c",
+    "hint": "Check the current date!"
+  },
+  {
+    "id": 46,
+    "question": "What does 'Web1' represent?",
+    "a": "Social media era",
+    "b": "Read-only internet",
+    "c": "Metaverse",
+    "d": "AI era",
+    "answer": "b",
+    "hint": "Just static pages."
+  },
+  {
+    "id": 47,
+    "question": "Which term means 'The economics of a token'?",
+    "a": "Tokenology",
+    "b": "Tokenomics",
+    "c": "CoinMath",
+    "d": "CryptoEco",
+    "answer": "b",
+    "hint": "Token + Economics."
+  },
+  {
+    "id": 48,
+    "question": "What is an 'Explorer' like Etherscan used for?",
+    "a": "Playing games",
+    "b": "Searching for and checking transactions on a blockchain",
+    "c": "Sending emails",
+    "d": "Mining Bitcoin",
+    "answer": "b",
+    "hint": "Searching for data."
+  },
+  {
+    "id": 49,
+    "question": "What is 'Optimistic Concurrency Control' in Monad?",
+    "a": "Hoping the price goes up",
+    "b": "A tech to run many transactions at once and fix errors later",
+    "c": "A social rule",
+    "d": "A way to vote",
+    "answer": "b",
+    "hint": "Being 'optimistic' about tasks."
+  },
+  {
+    "id": 50,
+    "question": "Which of these is the most important for an AGÜ engineer to build on Monad?",
+    "a": "Patience",
+    "b": "Creativity and high-performance code",
+    "c": "A lot of money",
+    "d": "A fast car",
+    "answer": "b",
+    "hint": "The core of engineering."
+  }
+]
