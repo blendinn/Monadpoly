@@ -4,9 +4,17 @@ type ParticipantStore = {
   participants: string[];
 };
 
+type ContestStateStore = {
+  started: boolean;
+  startedAt: number | null;
+  readyParticipants: string[];
+};
+
 declare global {
   // eslint-disable-next-line no-var
   var __contestStore: ParticipantStore | undefined;
+  // eslint-disable-next-line no-var
+  var __contestStateStore: ContestStateStore | undefined;
 }
 
 const getStore = (): ParticipantStore => {
@@ -46,6 +54,11 @@ export async function DELETE(request: Request) {
 
   const store = getStore();
   store.participants = store.participants.filter(item => item !== address);
+  if (global.__contestStateStore) {
+    global.__contestStateStore.readyParticipants = global.__contestStateStore.readyParticipants.filter(
+      item => item !== address,
+    );
+  }
 
   return NextResponse.json({ participants: store.participants });
 }
